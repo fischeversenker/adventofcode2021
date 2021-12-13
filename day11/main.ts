@@ -8,6 +8,7 @@ function tick(octopussies: number[][]): [number[][], number] {
   let flashedOctos: string[];
   // count all up by 1
   let nextOctopussies = octopussies.map(row => row.map(level => level+1));
+
   // flash all
   while (hasLoadedOctos(nextOctopussies, alreadyFlashed)) {
     [nextOctopussies, flashedOctos] = flashOctos(nextOctopussies, alreadyFlashed);
@@ -100,7 +101,18 @@ partOne();
 // part two
 
 function partTwo(): void {
-  // TBD
+  console.log('part two');
+  console.time('Timer for part two');
+  let octos = rawLines.map(line => line.split('').map(Number));
+  const octoCount = octos.length * octos[0].length;
+  let stepCount = 0;
+  let flashes = 0;
+  while (flashes !== octoCount) {
+    [octos, flashes] = tick(octos);
+    stepCount++;
+  }
+  console.log(stepCount);
+  console.timeEnd('Timer for part two');
 }
 
 partTwo();
