@@ -64,6 +64,7 @@ function getPaths(caveMap: Map<string, Cave>, start = 'start', currentPath: Path
       paths.push(out);
       return;
     }
+    // figure this out... not correct yet
     const nextPaths = getPaths(caveMap, out, [...currentPath, caveMap.get(out)!]);
     paths.push(out, nextPaths[nextPaths.length-1]);
   });

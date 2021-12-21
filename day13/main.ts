@@ -29,24 +29,9 @@ function getDotsAndFolds(lines: string[]): { dots: Vector[], folds: Fold[] } {
 }
 
 function getPaperDimensions(dots: Vector[]): [number, number] {
-  const paperWidth = dots.reduce((max, dot) => Math.max(max, dot.x), 0) + 1;
-  const paperHeight = dots.reduce((max, dot) => Math.max(max, dot.y), 0) + 1;
+  const paperWidth = dots.reduce((max, dot) => Math.max(max, dot.x), 0);
+  const paperHeight = dots.reduce((max, dot) => Math.max(max, dot.y), 0);
   return [paperWidth, paperHeight];
-}
-
-function placeDotsOnPaper(dots: Vector[], paperWidth: number, paperHeight: number): boolean[][] {
-  const paper: boolean[][] = [];
-  for (let y = 0; y <= paperHeight; y++) {
-    paper[y] = [];
-    for (let x = 0; x <= paperWidth; x++) {
-      paper[y][x] = false;
-    }
-  }
-  dots.forEach(dot => {
-    paper[dot.y][dot.x] = true;
-  });
-
-  return paper;
 }
 
 function printPaper(paper: boolean[][], fold?: Fold): void {
@@ -70,36 +55,6 @@ function printPaper(paper: boolean[][], fold?: Fold): void {
   console.log(paperString);
 }
 
-function foldDots(dots: Vector[], fold: Fold, paperWidth: number, paperHeight: number): Vector[] {
-  // const [paperWidth, paperHeight] = getPaperDimensions(dots);
-  const foldedDots: Vector[] = [];
-
-  if (fold.type === 'horizontal') {
-    dots.forEach(dot => {
-      if (dot.y === fold.line) {
-        throw new Error(`dot on horizontal fold line! Dot: ${dot.x}/${dot.y}, fold line: ${fold.line}`);
-      }
-      if (dot.y > fold.line) {
-        foldedDots.push({ x: dot.x, y: paperHeight - dot.y });
-      } else {
-        foldedDots.push({ ...dot });
-      }
-    });
-  } else {
-    dots.forEach(dot => {
-      if (dot.x === fold.line) {
-        throw new Error(`dot on vertical fold line! Dot: ${dot.x}/${dot.y}, fold line: ${fold.line}`);
-      }
-      if (dot.x > fold.line) {
-        foldedDots.push({ x: paperWidth - dot.x, y: dot.y });
-      } else {
-        foldedDots.push({ ...dot });
-      }
-    });
-  }
-  return foldedDots;
-}
-
 function countDots(dots: Vector[]): number {
   const dotSet = new Set<string>();
   dots.forEach(dot => dotSet.add(`${dot.x}/${dot.y}`));
@@ -114,29 +69,74 @@ function partOne(): void {
   const { dots, folds } = getDotsAndFolds(rawLines);
   const [paperWidth, paperHeight] = getPaperDimensions(dots);
   const initialPaper = placeDotsOnPaper(dots, paperWidth, paperHeight);
-  const foldedDots = foldDots(dots, folds[0], paperWidth, paperHeight);
+  const foldedDots = foldDots(dots, folds[0]);
   // const paper = placeDotsOnPaper(foldedDots, paperWidth, paperHeight);
   // printPaper(paper);
   console.log(countDots(foldedDots));
   console.timeEnd('Timer for part one');
 }
 
-// partOne();
+partOne();
 
 // part two
+
+function foldDots(dots: Vector[], fold: Fold): Vector[] {
+  const foldedDots: Vector[] = [];
+
+  if (fold.type === 'horizontal') {
+    dots.forEach(dot => {
+      if (dot.y === fold.line) {
+        throw new Error(`dot on horizontal fold line! Dot: ${dot.x}/${dot.y}, fold line: ${fold.line}`);
+      }
+      if (dot.y > fold.line) {
+        foldedDots.push({ x: dot.x, y: fold.line - (dot.y - fold.line) });
+      } else {
+        foldedDots.push({ ...dot });
+      }
+    });
+  } else {
+    dots.forEach(dot => {
+      if (dot.x === fold.line) {
+        throw new Error(`dot on vertical fold line! Dot: ${dot.x}/${dot.y}, fold line: ${fold.line}`);
+      }
+      if (dot.x > fold.line) {
+        foldedDots.push({ x: fold.line - (dot.x - fold.line), y: dot.y });
+      } else {
+        foldedDots.push({ ...dot });
+      }
+    });
+  }
+  return foldedDots;
+}
+
+function placeDotsOnPaper(dots: Vector[], paperWidth: number, paperHeight: number): boolean[][] {
+  const paper: boolean[][] = [];
+  for (let y = 0; y <= paperHeight; y++) {
+    paper[y] = [];
+    for (let x = 0; x <= paperWidth; x++) {
+      paper[y][x] = false;
+    }
+  }
+  dots.forEach(dot => {
+    paper[dot.y][dot.x] = true;
+  });
+
+  return paper;
+}
 
 function partTwo(): void {
   console.log('part two');
   console.time('Timer for part two');
   let { dots, folds } = getDotsAndFolds(rawLines);
   let [paperWidth, paperHeight] = getPaperDimensions(dots);
+  console.log({ paperWidth, paperHeight });
 
   folds.forEach(fold => {
-    dots = foldDots(dots, fold, paperWidth, paperHeight);
+    dots = foldDots(dots, fold);
     if (fold.type === 'horizontal') {
-      paperHeight = Math.floor(paperHeight / 2);
+      paperHeight = fold.line - 1;
     } else {
-      paperWidth = Math.floor(paperWidth / 2);
+      paperWidth = fold.line - 1;
     }
     const paper = placeDotsOnPaper(dots, paperWidth, paperHeight);
     printPaper(paper);
@@ -146,4 +146,4 @@ function partTwo(): void {
   console.timeEnd('Timer for part two');
 }
 
-partTwo();
+// partTwo();
